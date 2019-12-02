@@ -3,7 +3,7 @@ import fs from "fs";
 
 const { blue, green, yellow } = kleur;
 
-const withTimer = async (method, input) => {
+const withTimer = async (method, input, day, part) => {
   const startTime = new Date().getTime();
   const result = await method(input);
   const endTime = new Date().getTime();
@@ -12,9 +12,9 @@ const withTimer = async (method, input) => {
 
   // eslint-disable-next-line no-console
   console.log(
-    `${blue("Result day 1 part 1")} (${yellow(`${timeInSeconds}s`)}): "${green(
-      result
-    )}"`
+    `${blue(`Result day ${day} part ${part}`)} (${yellow(
+      `${timeInSeconds}s`
+    )}): "${green(result)}"`
   );
 };
 
@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== "test") {
       const inputBuffer = getInputDay(process.argv[2]);
 
       import(getScriptFile(process.argv[2], 1)).then(({ main }) => {
-        withTimer(main, inputBuffer.toString());
+        withTimer(main, inputBuffer.toString(), process.argv[2], "1");
       });
     }
 
@@ -35,7 +35,7 @@ if (process.env.NODE_ENV !== "test") {
       const inputBuffer = getInputDay(process.argv[2]);
 
       import(getScriptFile(process.argv[2], 2)).then(({ main }) => {
-        withTimer(main, inputBuffer.toString());
+        withTimer(main, inputBuffer.toString(), process.argv[2], "2");
       });
     }
   })();
