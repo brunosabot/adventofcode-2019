@@ -1,3 +1,5 @@
+import fs from "fs";
+
 export const name = "library-1";
 
 export const splitValues = (values, char = "\n") => values.split(char);
@@ -28,4 +30,78 @@ export const intcode = input => {
   }
 
   return result;
+};
+
+export const intersect = (map1, map2) => {
+  const keys2 = Object.keys(map2);
+  const output = [];
+  keys2.forEach(key => {
+    if (map1[key] === true) {
+      output.push(key);
+    }
+  });
+
+  return output;
+};
+
+export const renderMapIntersect = (x1, y1, x2, y2, map1, map2) => {
+  let string = "";
+  for (let i = y1; i < y2; i += 1) {
+    for (let j = x1; j < x2; j += 1) {
+      if (i === 0 && j === 0) {
+        string += "O";
+      } else if (map1[`${j}:${i}`] === true && map2[`${j}:${i}`] === true) {
+        string += "X";
+      } else if (map1[`${j}:${i}`] === true || map2[`${j}:${i}`] === true) {
+        string += "+";
+      } else {
+        string += ".";
+      }
+    }
+    string += "\n";
+  }
+
+  fs.writeFile("./test.txt", string, (a, b) => console.log(a, b));
+
+  // eslint-disable-next-line no-console
+  // console.log(string);
+};
+
+const move = (getKey, getFinalCoord) => (map, distance, currentX, currentY, targetX, targetY) => {
+  let d = 0;
+  let done = false;
+
+  for (let i = 1; i <= distance; i += 1) {
+    const newCoords = getKey(currentX, currentY, i);
+
+    map[newCoords.join(":")] = true;
+
+    if (newCoords[0] === targetX && newCoords[1] === targetY) {
+      done = true;
+      d += 1;
+    } else if (done === false) {
+      d += 1;
+    }
+  }
+
+  return [map, ...getFinalCoord(currentX, currentY, distance), d, done];
+};
+
+export const moveMap = {
+  U: move(
+    (currentX, currentY, i) => [currentX, currentY - i],
+    (currentX, currentY, distance) => [currentX, currentY - distance]
+  ),
+  R: move(
+    (currentX, currentY, i) => [currentX + i, currentY],
+    (currentX, currentY, distance) => [currentX + distance, currentY]
+  ),
+  D: move(
+    (currentX, currentY, i) => [currentX, currentY + i],
+    (currentX, currentY, distance) => [currentX, currentY + distance]
+  ),
+  L: move(
+    (currentX, currentY, i) => [currentX - i, currentY],
+    (currentX, currentY, distance) => [currentX - distance, currentY]
+  )
 };
