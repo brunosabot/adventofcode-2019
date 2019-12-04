@@ -105,3 +105,7 @@ export const moveMap = {
     (currentX, currentY, distance) => [currentX - distance, currentY]
   )
 };
+
+export const isNeverDecrease = digits => {
+  return digits.every((digit, i) => digits[i + 1] === undefined || digit <= digits[i + 1]);
+};
