@@ -10,26 +10,86 @@ export const sumReduce = (total, values) => total + values;
 
 export const formatResult = value => `${value}`;
 
-export const intcode = input => {
-  const result = [...input];
+const getIntCodeCode = inputCode => {
+  const [A, B, C, D, E] = `${inputCode}`.padStart(5, "0").split("");
 
+  return [D + E, C, B, A].map(e => parseInt(e, 10));
+};
+
+const getValueOrRef = (results, digit, mode) => {
+  if (mode === 0) {
+    return results[digit];
+  }
+  return digit;
+};
+
+export const intcode = (inputResult, inputValue = 1) => {
+  const result = [...inputResult];
+  let output = "";
   let index = 0;
+
   while (result[index] !== 99 && result[index] !== undefined) {
-    const code = result[index];
-    const firstDigit = result[result[index + 1]];
-    const secondDigit = result[result[index + 2]];
-    const whereToStore = result[index + 3];
+    const [code, firstMode, secondMode] = getIntCodeCode(result[index]);
+    const firstDigit = result[index + 1];
+    const secondDigit = result[index + 2];
+    const thirdDigit = result[index + 3];
 
     if (code === 1) {
-      result[whereToStore] = firstDigit + secondDigit;
+      result[thirdDigit] =
+        getValueOrRef(result, firstDigit, firstMode) +
+        getValueOrRef(result, secondDigit, secondMode);
+      index += 4;
     } else if (code === 2) {
-      result[whereToStore] = firstDigit * secondDigit;
+      result[thirdDigit] =
+        getValueOrRef(result, firstDigit, firstMode) *
+        getValueOrRef(result, secondDigit, secondMode);
+      index += 4;
+    } else if (code === 3) {
+      result[firstDigit] = inputValue;
+      index += 2;
+    } else if (code === 4) {
+      output += getValueOrRef(result, firstDigit, firstMode);
+      index += 2;
+    } else if (code === 5) {
+      // Opcode 5 is jump-if-true: if the first parameter is non-zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
+      if (getValueOrRef(result, firstDigit, firstMode) !== 0) {
+        index = getValueOrRef(result, secondDigit, secondMode);
+      } else {
+        index += 3;
+      }
+    } else if (code === 6) {
+      // Opcode 6 is jump-if-false: if the first parameter is zero, it sets the instruction pointer to the value from the second parameter. Otherwise, it does nothing.
+      if (getValueOrRef(result, firstDigit, firstMode) === 0) {
+        index = getValueOrRef(result, secondDigit, secondMode);
+      } else {
+        index += 3;
+      }
+    } else if (code === 7) {
+      // Opcode 7 is less than: if the first parameter is less than the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
+      if (
+        getValueOrRef(result, firstDigit, firstMode) <
+        getValueOrRef(result, secondDigit, secondMode)
+      ) {
+        result[thirdDigit] = 1;
+      } else {
+        result[thirdDigit] = 0;
+      }
+      index += 4;
+    } else if (code === 8) {
+      // Opcode 8 is equals: if the first parameter is equal to the second parameter, it stores 1 in the position given by the third parameter. Otherwise, it stores 0.
+      if (
+        getValueOrRef(result, firstDigit, firstMode) ===
+        getValueOrRef(result, secondDigit, secondMode)
+      ) {
+        result[thirdDigit] = 1;
+      } else {
+        result[thirdDigit] = 0;
+      }
+      index += 4;
     }
-
-    index += 4;
   }
 
-  return result;
+  return [result, output];
 };
 
 export const intersect = (map1, map2) => {
